@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ventilator-Check (Typenschild ↔ Messung)</title>
+  <meta name="theme-color" content="#111111" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <style>
+    :root { --bg:#0f1115; --card:#171a21; --text:#e9eef7; --muted:#aab4c0; --accent:#67d1ff; --ok:#41d27a; --warn:#ffcf5a; --bad:#ff6b6b; }
+    body{ margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); }
+    header{ padding:18px 16px; border-bottom:1px solid #232734; }
+    header h1{ margin:0; font-size:18px; }
+    header p{ margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.35; }
+    main{ padding:16px; max-width:980px; margin:0 auto; }
+    .grid{ display:grid; gap:12px; grid-template-columns:1fr; }
+    @media(min-width:900px){ .grid{ grid-template-columns:1fr 1fr; } }
+    .card{ background:var(--card); border:1px solid #232734; border-radius:14px; padding:14px; box-shadow: 0 6px 18px rgba(0,0,0,.25); }
+    .card h2{ margin:0 0 10px; font-size:15px; }
+    label{ display:block; margin:10px 0 6px; color:var(--muted); font-size:12px; }
+    .row{ display:grid; gap:10px; grid-template-columns:1fr; }
+    @media(min-width:520px){ .row{ grid-template-columns:1fr 1fr; } }
+    input, select{
+      width:100%; box-sizing:border-box;
+      padding:10px 10px; border-radius:10px;
+      border:1px solid #2b3142; background:#0e1016; color:var(--text);
+      font-size:14px;
+    }
+    input::placeholder{ color:#5f6a78; }
+    .hint{ color:var(--muted); font-size:12px; line-height:1.35; margin:6px 0 0; }
+    .btnrow{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+    button{
+      padding:10px 12px; border-radius:10px; border:1px solid #2b3142;
+      background:#10131b; color:var(--text); cursor:pointer;
+      font-size:14px;
+    }
+    button.primary{ border-color:#1f5f78; background:#0b1f28; }
+    button:hover{ filter:brightness(1.08); }
+    .kpi{ display:grid; grid-template-columns:1fr; gap:10px; margin-top:10px; }
+    @media(min-width:700px){ .kpi{ grid-template-columns:1fr 1fr; } }
+    .pill{ display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid #2b3142; color:var(--muted); }
+    .status{ margin-top:10px; padding:10px; border-radius:12px; border:1px solid #2b3142; }
+    .status.ok{ border-color:rgba(65,210,122,.5); background:rgba(65,210,122,.08); }
+    .status.warn{ border-color:rgba(255,207,90,.5); background:rgba(255,207,90,.08); }
+    .status.bad{ border-color:rgba(255,107,107,.5); background:rgba(255,107,107,.08); }
+    .status b{ display:block; margin-bottom:6px; }
+    .list{ margin:8px 0 0; padding-left:18px; color:var(--muted); font-size:13px; line-height:1.45; }
+    footer{ padding:14px 16px; color:var(--muted); font-size:12px; border-top:1px solid #232734; }
+    a{ color:var(--accent); }
+    code{ color:#c9f2ff; }
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>Ventilator-Check: Typenschild ↔ Messung</h1>
+  <p>
+    Plausibilitätsrechnung mit Ähnlichkeitsgesetzen (Q ∝ n, Δp ∝ n², P ∝ n³).<br>
+    Für zwei gleiche Ventilatoren parallel wird der Volumenstrom addiert.
+  </p>
+</header>
+
+<main class="grid">
+
+  <section class="card">
+    <h2>1) Typenschild-Daten (je Ventilator)</h2>
+
+    <label>Volumenstrom am Nennpunkt (Q₀)</label>
+    <div class="row">
+      <input id="q0" type="number" step="any" placeholder="z. B. 6.7" />
+      <select id="q0Unit">
+        <option value="m3s">m³/s</option>
+        <option value="m3h" selected>m³/h</option>
+      </select>
+    </div>
+    <p class="hint">
+      Tipp Monteur: Auf alten Schildern steht oft <b>V</b> in m³/s. Wenn du m³/h misst, wähle m³/h.
+      (Umrechnung: 1 m³/s = 3600 m³/h)
+    </p>
+
+    <label>Nenn-Drehzahl (n₀)</label>
+    <input id="n0" type="number" step="any" placeholder="z. B. 1450" />
+    <p class="hint">
+      Typisch bei 50 Hz / 4-polig: ca. <b>1450 U/min</b> (Schlupf). Wenn FU vorhanden: n besser messen/auslesen.
+    </p>
+
+    <div class="row">
+      <div>
+        <label>Druckerhöhung am Nennpunkt (Δp₀) – optional</label>
+        <input id="dp0" type="number" step="any" placeholder="z. B. 600" />
+        <p class="hint">Wenn du Δp₀ nicht sicher hast, leer lassen. Einheit: <b>Pa</b>.</p>
+      </div>
+      <div>
+        <label>Wellen-/Aufnahmeleistung am Nennpunkt (P₀) – optional</label>
+        <input id="p0" type="number" step="any" placeholder="z. B. 22" />
+        <p class="hint">Einheit: <b>kW</b> (wenn am Schild: Nw / kW). Sonst leer lassen.</p>
+      </div>
+    </div>
+
+    <label>Anzahl identischer Ventilatoren parallel</label>
+    <select id="fanCount">
+      <option value="1">1 Ventilator</option>
+      <option value="2" selected>2 Ventilatoren (parallel)</option>
+      <option value="3">3 Ventilatoren (parallel)</option>
+      <option value="4">4 Ventilatoren (parallel)</option>
+    </select>
+    <p class="hint">
+      Wichtig: Parallelschaltung setzt ähnliche Betriebspunkte voraus (gleiches Gerät, gleiche Drehzahl, gleiche Druckdifferenz).
+    </p>
+
+  </section>
+
+  <section class="card">
+    <h2>2) Mess-/Betriebsdaten vor Ort</h2>
+
+    <label>Aktuelle Drehzahl (n) oder aus FU berechnet</label>
+    <input id="nMeas" type="number" step="any" placeholder="z. B. 1450" />
+    <p class="hint">
+      Wenn keine Drehzahl messbar: bei Direktantrieb ohne FU meist nahe 1450 U/min (4-polig). Mit FU bitte n auslesen.
+    </p>
+
+    <label>Gemessener Gesamt-Volumenstrom (Q<sub>mess</sub>)</label>
+    <div class="row">
+      <input id="qMeas" type="number" step="any" placeholder="z. B. 42000" />
+      <select id="qMeasUnit">
+        <option value="m3s">m³/s</option>
+        <option value="m3h" selected>m³/h</option>
+      </select>
+    </div>
+    <p class="hint">
+      Messhinweis: Volumenstrommessung in Kanalquerschnitten benötigt sauberes Messprofil (Einlauf-/Auslaufstrecken, Rastermessung).
+      Bei Messhauben/Anemometern entstehen schnell systematische Abweichungen.
+    </p>
+
+    <div class="row">
+      <div>
+        <label>Gemessene Druckdifferenz über Ventilator (Δp<sub>mess</sub>) – optional</label>
+        <input id="dpMeas" type="number" step="any" placeholder="z. B. 550" />
+        <p class="hint">Einheit: Pa. Nur sinnvoll, wenn Messstellen korrekt (statisch) gesetzt sind.</p>
+      </div>
+      <div>
+        <label>Gemessene Leistung gesamt (P<sub>mess</sub>) – optional</label>
+        <input id="pMeas" type="number" step="any" placeholder="z. B. 30" />
+        <p class="hint">Einheit: kW. Idealerweise elektrische Wirkleistung (Drehstrom-Messgerät), nicht nur Strom.</p>
+      </div>
+    </div>
+
+    <label>Toleranz für Bewertung (±%)</label>
+    <input id="tol" type="number" step="any" value="10" />
+    <p class="hint">
+      Empfehlung: Für Vor-Ort-Messungen oft <b>±10–15 %</b>. Typenschild selbst kann (z. B. ±3 %) haben – aber Messunsicherheit ist meist größer.
+    </p>
+
+    <div class="btnrow">
+      <button class="primary" id="btnCalc">Berechnen</button>
+      <button id="btnExample">Beispielwerte laden</button>
+      <button id="btnReset">Zurücksetzen</button>
+    </div>
+
+    <div id="out"></div>
+  </section>
+
+  <section class="card" style="grid-column:1/-1;">
+    <h2>3) Interpretation & typische Fehlerquellen</h2>
+    <span class="pill">Wenn Abweichung groß</span>
+    <ul class="list">
+      <li><b>Drehzahl stimmt?</b> (Riemenschlupf, falsche FU-Sollwerte, falsche Polzahlannahme)</li>
+      <li><b>Ventilatoren wirklich parallel?</b> (eine Maschine aus, Rückschlagklappe defekt, ungleichmäßige Klappenstellungen)</li>
+      <li><b>Messstelle/Profil</b>: zu kurze Beruhigungsstrecken, Drall, Bögen/Abzweige direkt davor</li>
+      <li><b>Filter/Klappen/Wärmetauscher</b>: stark verschmutzt → Betriebspunkt wandert, Q sinkt bei höherem Δp</li>
+      <li><b>Leckagen</b> im Kanalnetz / Gehäuse → Q am Messpunkt passt nicht zum Ventilator</li>
+      <li><b>Luftdichte</b> deutlich anders als „Standard“ (heiße Luft, Laborabluft) → Plausibilität mit Dichtekorrektur sinnvoll</li>
+    </ul>
+    <p class="hint">
+      Wenn du möchtest, kann ich als nächsten Schritt eine <b>Dichtekorrektur (ρ)</b> (Temperatur, Höhe, Feuchte) integrieren
+      und/oder eine „Messprotokoll“-Ausgabe (PDF/CSV) ergänzen.
+    </p>
+  </section>
+
+</main>
+
+<footer>
+  Offline nutzbar als PWA (nach erstem Laden). Hostbar auf GitHub Pages. Version: 1.0
+</footer>
+
+<script>
+  // --- Helpers ---
+  const $ = (id) => document.getElementById(id);
+
+  function toM3s(value, unit){
+    if (!isFinite(value)) return NaN;
+    return unit === "m3h" ? value / 3600.0 : value;
+  }
+  function fromM3s(valueM3s, unit){
+    if (!isFinite(valueM3s)) return NaN;
+    return unit === "m3h" ? valueM3s * 3600.0 : valueM3s;
+  }
+  function fmt(x, digits=2){
+    if (!isFinite(x)) return "—";
+    const abs = Math.abs(x);
+    const d = abs >= 100 ? 0 : (abs >= 10 ? 1 : digits);
+    return x.toLocaleString("de-DE", { maximumFractionDigits: d });
+  }
+  function pct(x){
+    if (!isFinite(x)) return "—";
+    return x.toLocaleString("de-DE", { maximumFractionDigits: 1 }) + " %";
+  }
+
+  function calc(){
+    const q0 = parseFloat($("q0").value);
+    const q0Unit = $("q0Unit").value;
+    const n0 = parseFloat($("n0").value);
+    const dp0 = parseFloat($("dp0").value);
+    const p0  = parseFloat($("p0").value);
+    const fanCount = parseInt($("fanCount").value, 10);
+
+    const n = parseFloat($("nMeas").value);
+    const qMeas = parseFloat($("qMeas").value);
+    const qMeasUnit = $("qMeasUnit").value;
+    const dpMeas = parseFloat($("dpMeas").value);
+    const pMeas  = parseFloat($("pMeas").value);
+    const tol = parseFloat($("tol").value);
+
+    const out = $("out");
+    out.innerHTML = "";
+
+    // Basic validation
+    const errors = [];
+    if (!isFinite(q0) || q0 <= 0) errors.push("Q₀ (Typenschild) fehlt oder ist ≤ 0.");
+    if (!isFinite(n0) || n0 <= 0) errors.push("n₀ (Nenn-Drehzahl) fehlt oder ist ≤ 0.");
+    if (!isFinite(n)  || n  <= 0) errors.push("n (aktuelle Drehzahl) fehlt oder ist ≤ 0.");
+    if (!isFinite(qMeas) || qMeas <= 0) errors.push("Qmess (gemessen) fehlt oder ist ≤ 0.");
+    if (!isFinite(tol) || tol <= 0) errors.push("Toleranz muss > 0 sein.");
+
+    if (errors.length){
+      out.innerHTML = `<div class="status bad"><b>Eingaben prüfen</b><ul class="list">${errors.map(e=>`<li>${e}</li>`).join("")}</ul></div>`;
+      return;
+    }
+
+    const q0_m3s = toM3s(q0, q0Unit);
+    const qMeas_m3s = toM3s(qMeas, qMeasUnit);
+
+    const ratio = n / n0;
+
+    // Fan laws (scaled per fan)
+    const qExpected_perFan_m3s = q0_m3s * ratio;           // Q ∝ n
+    const qExpected_total_m3s  = qExpected_perFan_m3s * fanCount;
+
+    const qDev = (qMeas_m3s - qExpected_total_m3s) / qExpected_total_m3s * 100.0;
+
+    // Optional dp and power
+    const dpExpected = isFinite(dp0) && dp0 > 0 ? dp0 * ratio * ratio : NaN; // Δp ∝ n²
+    const pExpected_total = isFinite(p0) && p0 > 0 ? (p0 * Math.pow(ratio,3) * fanCount) : NaN; // P ∝ n³
+
+    // Status classification
+    const absDev = Math.abs(qDev);
+    let cls = "ok", title = "Plausibel";
+    if (absDev > tol && absDev <= tol*1.5){ cls="warn"; title="Grenzwertig"; }
+    if (absDev > tol*1.5){ cls="bad"; title="Nicht plausibel"; }
+
+    // Build output
+    const qExpected_total_out = fromM3s(qExpected_total_m3s, qMeasUnit);
+    const qExpected_perFan_out = fromM3s(qExpected_perFan_m3s, qMeasUnit);
+
+    let html = `
+      <div class="status ${cls}">
+        <b>${title}: Abweichung Volumenstrom ${pct(qDev)}</b>
+        <div class="kpi">
+          <div>
+            <div class="pill">Erwartet (gesamt)</div>
+            <div style="font-size:22px; margin-top:6px;"><b>${fmt(qExpected_total_out)}</b> ${qMeasUnit === "m3h" ? "m³/h" : "m³/s"}</div>
+            <div class="hint">Berechnung: Q = Q₀ · (n/n₀) · Anzahl</div>
+          </div>
+          <div>
+            <div class="pill">Erwartet (je Ventilator)</div>
+            <div style="font-size:22px; margin-top:6px;"><b>${fmt(qExpected_perFan_out)}</b> ${qMeasUnit === "m3h" ? "m³/h" : "m³/s"}</div>
+            <div class="hint">Hilft, wenn Messung je Strang/je Ventilator vorliegt.</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Optional blocks
+    if (isFinite(dpExpected) || isFinite(dpMeas)){
+      const dpDev = (isFinite(dpExpected) && isFinite(dpMeas)) ? (dpMeas - dpExpected)/dpExpected*100 : NaN;
+      html += `
+        <div class="card" style="margin-top:10px;">
+          <h2>Δp-Check (optional)</h2>
+          <div class="kpi">
+            <div>
+              <div class="pill">Δp erwartet</div>
+              <div style="font-size:18px; margin-top:6px;"><b>${fmt(dpExpected,1)}</b> Pa</div>
+              <div class="hint">Berechnung: Δp = Δp₀ · (n/n₀)²</div>
+            </div>
+            <div>
+              <div class="pill">Δp gemessen</div>
+              <div style="font-size:18px; margin-top:6px;"><b>${fmt(dpMeas,1)}</b> Pa</div>
+              <div class="hint">${isFinite(dpDev) ? ("Abweichung: " + pct(dpDev)) : "Für Abweichung braucht es Δp₀ und ΔpMess."}</div>
+            </div>
+          </div>
+          <p class="hint">
+            Achtung: Δp-Messung ist sehr empfindlich gegenüber Messstellen (statisch) und Drall. Bei Unklarheit lieber Q-Check priorisieren.
+          </p>
+        </div>
+      `;
+    }
+
+    if (isFinite(pExpected_total) || isFinite(pMeas)){
+      const pDev = (isFinite(pExpected_total) && isFinite(pMeas)) ? (pMeas - pExpected_total)/pExpected_total*100 : NaN;
+      html += `
+        <div class="card" style="margin-top:10px;">
+          <h2>Leistungs-Check (optional)</h2>
+          <div class="kpi">
+            <div>
+              <div class="pill">P erwartet (gesamt)</div>
+              <div style="font-size:18px; margin-top:6px;"><b>${fmt(pExpected_total,1)}</b> kW</div>
+              <div class="hint">Berechnung: P = P₀ · (n/n₀)³ · Anzahl</div>
+            </div>
+            <div>
+              <div class="pill">P gemessen</div>
+              <div style="font-size:18px; margin-top:6px;"><b>${fmt(pMeas,1)}</b> kW</div>
+              <div class="hint">${isFinite(pDev) ? ("Abweichung: " + pct(pDev)) : "Für Abweichung braucht es P₀ und PMess."}</div>
+            </div>
+          </div>
+          <p class="hint">
+            Praxis: Elektrische Wirkleistung kann von Wellenleistung abweichen (Motorwirkungsgrad, FU). Für exakte Bewertung bräuchte man Motor-/FU-Daten.
+          </p>
+        </div>
+      `;
+    }
+
+    // Recommendations based on result
+    const rec = [];
+    if (cls !== "ok"){
+      rec.push("Drehzahl prüfen (n wirklich wie angenommen? FU-Sollwert / Riemen / Polzahl).");
+      rec.push("Bei 2 Ventilatoren: laufen beide wirklich? Rückschlagklappe/Absperrklappe prüfen.");
+      rec.push("Messstrecken / Messverfahren prüfen (Rasterschwerpunkte, Drall, Ein-/Auslaufstrecken).");
+      rec.push("Filter/WT/Schalldämpfer auf Verschmutzung prüfen (Betriebspunktverschiebung).");
+    } else {
+      rec.push("Ergebnis ist plausibel. Für Dokumentation: Messstelle, Verfahren und Drehzahl notieren.");
+      rec.push("Optional Δp und Leistung ergänzen, um Messung abzusichern.");
+    }
+
+    html += `
+      <div class="card" style="margin-top:10px;">
+        <h2>Empfehlung</h2>
+        <ul class="list">${rec.map(r=>`<li>${r}</li>`).join("")}</ul>
+      </div>
+    `;
+
+    out.innerHTML = html;
+  }
+
+  function loadExample(){
+    $("q0").value = 21000; $("q0Unit").value = "m3h";
+    $("n0").value = 1450;
+    $("dp0").value = 600;
+    $("p0").value = 15;
+    $("fanCount").value = "2";
+    $("nMeas").value = 1380;
+    $("qMeas").value = 38000; $("qMeasUnit").value = "m3h";
+    $("dpMeas").value = 520;
+    $("pMeas").value = 26;
+    $("tol").value = 12;
+    calc();
+  }
+
+  function resetAll(){
+    ["q0","n0","dp0","p0","nMeas","qMeas","dpMeas","pMeas"].forEach(id => $(id).value = "");
+    $("q0Unit").value = "m3h";
+    $("qMeasUnit").value = "m3h";
+    $("fanCount").value = "2";
+    $("tol").value = 10;
+    $("out").innerHTML = "";
+  }
+
+  $("btnCalc").addEventListener("click", calc);
+  $("btnExample").addEventListener("click", loadExample);
+  $("btnReset").addEventListener("click", resetAll);
+
+  // Service worker registration (PWA offline)
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js").catch(()=>{});
+    });
+  }
+</script>
+</body>
+</html>
